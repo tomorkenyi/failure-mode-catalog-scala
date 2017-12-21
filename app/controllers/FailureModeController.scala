@@ -3,7 +3,7 @@ package controllers
 import javax.inject.Inject
 
 import models.FailureMode
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import reactivemongo.bson.BSONObjectID
 import repositories.FailureModeRepository
@@ -22,7 +22,7 @@ class FailureModeController @Inject()(cc: ControllerComponents, fmRepo: FailureM
     }
   }
 
-  def get(failureModeId: BSONObjectID) = Action.async { req =>
+  def get(failureModeId: BSONObjectID): Action[AnyContent] = Action.async { req =>
     fmRepo.findById(failureModeId).map { optionalFailureMode =>
       optionalFailureMode.map { failureMode =>
         Ok(Json.toJson(failureMode))
@@ -30,7 +30,7 @@ class FailureModeController @Inject()(cc: ControllerComponents, fmRepo: FailureM
     }
   }
 
-  def create() = Action.async(parse.json) { req =>
+  def create(): Action[JsValue] = Action.async(parse.json) { req =>
     req.body.validate[FailureMode].map { failureMode =>
       fmRepo.create(failureMode).map { _ =>
         Created
@@ -38,7 +38,7 @@ class FailureModeController @Inject()(cc: ControllerComponents, fmRepo: FailureM
     }.getOrElse(Future.successful(BadRequest("Invalid FailureMode is given for create")))
   }
 
-  def update(failureModeId: BSONObjectID) = Action.async(parse.json) { req =>
+  def update(failureModeId: BSONObjectID): Action[JsValue] = Action.async(parse.json) { req =>
     req.body.validate[FailureMode].map { failureMode =>
       fmRepo.update(failureModeId, failureMode).map {
         case Some(failureMode) => Ok(Json.toJson(failureMode))

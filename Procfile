@@ -1,0 +1,1 @@
+web: target/universal/stage/bin/failure-mode-catalog-scala -Dhttp.port=$PORT -Dconfig.resource=production.conf -Dmongodb.uri=mongodb://heroku_63ljr02p:c4kniqkl972hu0kd44vmt31t3e@ds161856.mlab.com:61856/heroku_63ljr02p
