@@ -13,6 +13,7 @@ case class FailureMode(_id: Option[BSONObjectID],
                        mitigation: Option[String],
                        detectability: Option[Int],
                        safetyConcern: Option[String],
-                       lastUpdated: Option[Long])
+                       lastUpdated: Option[Long],
+                       tag: Option[Tag])
 
 
