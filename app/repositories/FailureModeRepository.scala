@@ -3,7 +3,7 @@ package repositories
 import javax.inject.Inject
 
 import models.{FailureMode, Tag}
-import play.api.libs.json.Json
+import play.api.libs.json._
 import play.modules.reactivemongo.ReactiveMongoApi
 import reactivemongo.api.ReadPreference
 import reactivemongo.api.commands.WriteResult
@@ -14,8 +14,6 @@ import reactivemongo.play.json.collection.JSONCollection
 import scala.concurrent.{ExecutionContext, Future}
 
 object JsonFormats {
-  import play.api.libs.json._
-
   implicit val fmFormat: OFormat[FailureMode] = Json.format[FailureMode]
   implicit val tagFormat: OFormat[Tag] = Json.format[Tag]
 }

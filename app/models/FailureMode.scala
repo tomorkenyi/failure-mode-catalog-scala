@@ -14,6 +14,6 @@ case class FailureMode(_id: Option[BSONObjectID],
                        detectability: Option[Int],
                        safetyConcern: Option[String],
                        lastUpdated: Option[Long],
-                       tag: Option[Tag])
+                       tags: Option[Seq[BSONObjectID]])
 
 
