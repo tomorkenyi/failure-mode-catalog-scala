@@ -12,18 +12,18 @@ import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.Future
 
 
-class FailureModeController @Inject()(cc: ControllerComponents, fmRepo: FailureModeRepository) extends AbstractController(cc) {
+class FailureModeController @Inject()(cc: ControllerComponents, failureModeRepo: FailureModeRepository) extends AbstractController(cc) {
 
   import repositories.JsonFormats._
 
   def list: Action[AnyContent] = Action.async {
-    fmRepo.findAll.map { failureModes =>
+    failureModeRepo.findAll.map { failureModes =>
       Ok(Json.toJson(failureModes))
     }
   }
 
   def get(failureModeId: BSONObjectID): Action[AnyContent] = Action.async { req =>
-    fmRepo.findById(failureModeId).map { optionalFailureMode =>
+    failureModeRepo.findById(failureModeId).map { optionalFailureMode =>
       optionalFailureMode.map { failureMode =>
         Ok(Json.toJson(failureMode))
       }.getOrElse(NotFound)
@@ -32,18 +32,18 @@ class FailureModeController @Inject()(cc: ControllerComponents, fmRepo: FailureM
 
   def create(): Action[JsValue] = Action.async(parse.json) { req =>
     req.body.validate[FailureMode].map { failureMode =>
-      fmRepo.create(failureMode).map { _ =>
+      failureModeRepo.create(failureMode).map { _ =>
         Created
       }
-    }.getOrElse(Future.successful(BadRequest("Invalid FailureMode is given for create")))
+    }.getOrElse(Future.successful(BadRequest("Invalid FailureMode JSON object is given for creating a failure mode!")))
   }
 
   def update(failureModeId: BSONObjectID): Action[JsValue] = Action.async(parse.json) { req =>
     req.body.validate[FailureMode].map { failureMode =>
-      fmRepo.update(failureModeId, failureMode).map {
-        case Some(failureMode) => Ok(Json.toJson(failureMode))
+      failureModeRepo.update(failureModeId, failureMode).map {
+        case Some(failureModeResult) => Ok(Json.toJson(failureModeResult))
         case None => NotFound
       }
-    }.getOrElse(Future.successful(BadRequest("Invalid FailureMode is given for update")))
+    }.getOrElse(Future.successful(BadRequest("Invalid FailureMode JSON object is given for updating a failure mode!")))
   }
 }

@@ -21,6 +21,6 @@ class TagController @Inject()(cc: ControllerComponents, tagRepo: TagRepository) 
         case Some(resultTag) => Created(Json.toJson(resultTag))
         case None => InternalServerError("Tag cannot be created")
       }
-    }.getOrElse(Future.successful(BadRequest("Invalid FailureMode is given for create")))
+    }.getOrElse(Future.successful(BadRequest("Invalid Tag JSON object is given for creating a tag!")))
   }
 }
