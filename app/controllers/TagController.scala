@@ -4,7 +4,7 @@ import javax.inject.Inject
 
 import models.Tag
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{AbstractController, Action, ControllerComponents}
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 import reactivemongo.bson.BSONObjectID
 import repositories.TagRepository
 
@@ -22,5 +22,12 @@ class TagController @Inject()(cc: ControllerComponents, tagRepo: TagRepository) 
         case None => InternalServerError("Tag cannot be created")
       }
     }.getOrElse(Future.successful(BadRequest("Invalid Tag JSON object is given for creating a tag!")))
+  }
+
+  def search(text: String): Action[AnyContent] = Action.async { _ =>
+    tagRepo.search(text).map {
+      case Some(resultTag) => Ok(Json.toJson(resultTag))
+      case None => NotFound
+    }
   }
 }

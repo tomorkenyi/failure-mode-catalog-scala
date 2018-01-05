@@ -10,6 +10,7 @@ GET         /failures/:failureModeId             controllers.FailureModeControll
 POST        /failures                            controllers.FailureModeController.create
 PUT         /failures/:failureModeId             controllers.FailureModeController.update(failureModeId: reactivemongo.bson.BSONObjectID)
 POST        /failures/:failureModeId/tags        controllers.TagController.create(failureModeId: reactivemongo.bson.BSONObjectID)
+GET         /_search                             controllers.TagController.search(tag)
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                        controllers.Assets.versioned(path="/public", file: Asset)

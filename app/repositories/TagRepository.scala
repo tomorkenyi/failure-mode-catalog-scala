@@ -22,6 +22,10 @@ class TagRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: R
     }
   }
 
+  def search(text: String): Future[Option[Tag]] = {
+    tagCollection.flatMap(_.find(BSONDocument("text" -> text)).one[Tag])
+  }
+
   private def createTagIfFailureModeExists(tag: Tag, failureMode: FailureMode): Future[Option[Tag]] = {
     val tagId = BSONObjectID.generate()
     createTag(tag.copy(_id = Some(tagId)), failureMode._id.get).map {
