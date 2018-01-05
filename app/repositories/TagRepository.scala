@@ -1,5 +1,6 @@
 package repositories
 
+import java.io
 import javax.inject.Inject
 
 import models.{FailureMode, Tag}
@@ -18,12 +19,19 @@ class TagRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: R
   def create(tag: Tag, failureModeId: BSONObjectID): Future[Option[Tag]] = {
     failureModeCollection.flatMap(_.find(BSONDocument("_id" -> failureModeId)).one[FailureMode]).flatMap {
       case Some(failureMode) => createTagIfFailureModeExists(tag, failureMode)
-      case _ => Future(None)
+      case _ => Future.successful(None)
     }
   }
 
   def search(text: String): Future[Option[Tag]] = {
     tagCollection.flatMap(_.find(BSONDocument("text" -> text)).one[Tag])
+  }
+
+  def remove(failureModeId: BSONObjectID, tagId: BSONObjectID): Future[Any] = {
+    failureModeCollection.flatMap(_.find(BSONDocument("_id" -> failureModeId)).one[FailureMode]).flatMap {
+      case Some(failureMode) => removeTagFromFailureMode(tagId, failureMode)
+      case _ => Future.successful(None)
+    }
   }
 
   private def createTagIfFailureModeExists(tag: Tag, failureMode: FailureMode): Future[Option[Tag]] = {
@@ -41,12 +49,16 @@ class TagRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: R
     }
   }
 
-  private def appendFailureModeToTag(tag: Tag, fmId: BSONObjectID): Future[Option[Tag]] = {
-    val appendedFailureModes = tag.failureModes match {
-      case Some(failureModes) => if (failureModes.contains(fmId)) Some(failureModes) else Some(failureModes :+ fmId)
-      case None => Some(Seq(fmId))
+  private def removeTagFromFailureMode(tagId: BSONObjectID, failureMode: FailureMode): Future[io.Serializable] = {
+    val resultTags = failureMode.tags match {
+      case Some(tags) if tags.contains(tagId) => Some(tags.filter(!_.equals(tagId)))
+      case _ => None
     }
-    updateExistingTagWithFailureModes(tag, appendedFailureModes)
+
+    if (resultTags isDefined)
+      failureModeCollection.flatMap(_.update(BSONDocument("_id" -> failureMode._id), failureMode.copy(tags = resultTags)))
+    else
+      Future.successful(tagId.stringify)
   }
 
   private def updateExistingTagWithFailureModes(tag: Tag, appendedFailureModes: Option[Seq[BSONObjectID]]) = {
@@ -61,12 +73,20 @@ class TagRepository @Inject()(implicit ec: ExecutionContext, reactiveMongoApi: R
     Future.successful(Some(createdTag))
   }
 
+  private def appendFailureModeToTag(tag: Tag, fmId: BSONObjectID): Future[Option[Tag]] = {
+    val resultFailureModes = tag.failureModes match {
+      case Some(failureModes) => if (failureModes.contains(fmId)) Some(failureModes) else Some(failureModes :+ fmId)
+      case None => Some(Seq(fmId))
+    }
+    updateExistingTagWithFailureModes(tag, resultFailureModes)
+  }
+
   private def appendTagToFailureMode(tag: Tag, failureMode: FailureMode): Option[Tag] = {
-    val appendedTags = failureMode.tags match {
+    val resultTags = failureMode.tags match {
       case Some(tags) if !tags.contains(tag._id.get) => Some(tags :+ tag._id.get)
       case _ => Some(Seq[BSONObjectID](tag._id.get))
     }
-    failureModeCollection.flatMap(_.update(BSONDocument("_id" -> failureMode._id), failureMode.copy(tags = appendedTags)))
+    failureModeCollection.flatMap(_.update(BSONDocument("_id" -> failureMode._id), failureMode.copy(tags = resultTags)))
     Some(tag)
   }
 

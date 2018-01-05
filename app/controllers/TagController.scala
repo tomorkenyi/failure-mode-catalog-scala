@@ -30,4 +30,12 @@ class TagController @Inject()(cc: ControllerComponents, tagRepo: TagRepository) 
       case None => NotFound
     }
   }
+
+  def remove(failureModeId: BSONObjectID, tagId: BSONObjectID): Action[AnyContent] = Action.async { _ =>
+    tagRepo.remove(failureModeId, tagId).map {
+      case None => NotFound(s"Failure mode with id $failureModeId is not found")
+      case tagId: String => NotFound(s"Tag  with id $tagId is not found")
+      case _ => NoContent
+    }
+  }
 }
